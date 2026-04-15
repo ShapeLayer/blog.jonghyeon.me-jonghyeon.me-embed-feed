@@ -26,7 +26,7 @@ const defineFeedSectionElement = () => {
         return;
       }
 
-      var titleText = this.getAttribute("title-text") || "Latest posts";
+      var titleText = this.getAttribute("title-text") || "Recent posts";
 
       var header = document.createElement("div");
       header.className = "feed__header";
