@@ -1,4 +1,6 @@
 const POSTS = null/*##__POSTS__##*/;
+const FEED_RESIZE_MESSAGE_TYPE = "embed-feed-resize";
+let resizeBridgeInitialized = false;
 
 const safeText = (value) => {
   return String(value == null ? "" : value);
@@ -120,6 +122,54 @@ const render = (feedEl, data, limit) => {
   });
 };
 
+const notifyParentHeight = () => {
+  if (window.parent === window) {
+    return;
+  }
+
+  var root = document.documentElement;
+  var body = document.body;
+  var nextHeight = Math.ceil(
+    Math.max(
+      root ? root.scrollHeight : 0,
+      body ? body.scrollHeight : 0,
+    ),
+  );
+
+  window.parent.postMessage(
+    {
+      type: FEED_RESIZE_MESSAGE_TYPE,
+      height: nextHeight,
+    },
+    "*",
+  );
+};
+
+const setupResizeBridge = () => {
+  if (resizeBridgeInitialized || window.parent === window) {
+    return;
+  }
+
+  resizeBridgeInitialized = true;
+
+  if ("ResizeObserver" in window) {
+    var observer = new ResizeObserver(() => {
+      notifyParentHeight();
+    });
+
+    if (document.documentElement) {
+      observer.observe(document.documentElement);
+    }
+    if (document.body) {
+      observer.observe(document.body);
+    }
+  }
+
+  window.addEventListener("load", notifyParentHeight);
+  window.addEventListener("resize", notifyParentHeight);
+  setTimeout(notifyParentHeight, 0);
+};
+
 const boot = () => {
   var feedEl = document.querySelector("feed-section, .feed");
   if (!feedEl) {
@@ -135,11 +185,13 @@ const boot = () => {
   }
 
   render(feedEl, data || { items: [] }, limit);
+  notifyParentHeight();
 };
 
 const init = () => {
   defineFeedSectionElement();
   defineFeedItemElement();
+  setupResizeBridge();
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", boot);
