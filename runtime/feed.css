@@ -127,6 +127,10 @@ feed-item {
   color: var(--feed-muted);
 }
 
+.feed__empty[hidden] {
+  display: none !important;
+}
+
 .feed__empty::before {
   content: "»";
   display: flex;
