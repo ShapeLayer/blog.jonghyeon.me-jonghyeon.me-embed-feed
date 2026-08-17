@@ -114,6 +114,7 @@ feed-item {
   color: var(--feed-muted);
   font-size: 0.9em;
   font-style: italic;
+  white-space: nowrap;
 }
 
 .feed__empty {
