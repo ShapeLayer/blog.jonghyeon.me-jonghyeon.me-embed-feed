@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import re
 import shutil
@@ -45,7 +46,7 @@ def strip_markdown(text: str) -> str:
     text = MARKDOWN_TAG_RE.sub("", text)
     text = re.sub(r"^[#>*\-\s]+", "", text)
     text = re.sub(r"\s+", " ", text)
-    return text.strip()
+    return html.unescape(text).strip()
 
 
 def pick_excerpt(body: str, max_len: int = 160) -> str:
@@ -84,7 +85,7 @@ def collect_posts(posts_dir: Path, blog_base_url: str) -> list[dict[str, str]]:
         path = build_post_path(date_str, slug)
         items.append(
             {
-                "title": meta.get("title") or title_from_slug(slug),
+                "title": html.unescape(meta.get("title") or title_from_slug(slug)),
                 "date": f"{date_str}T00:00:00Z",
                 "path": path,
                 "url": f"{blog_base_url.rstrip('/')}{path}",
