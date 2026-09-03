@@ -84,13 +84,20 @@ const defineFeedItemElement = () => {
   customElements.define("feed-item", FeedItemElement);
 };
 
-const getLimit = (defaultLimit) => {
+const getLimit = (maximumLimit) => {
   var params = new URLSearchParams(window.location.search);
-  var n = Number(params.get("n"));
-  if (!Number.isFinite(n) || n <= 0) {
-    return defaultLimit;
+  var requestedPosts = params.get("posts");
+
+  if (!requestedPosts || !/^\d+$/.test(requestedPosts)) {
+    return maximumLimit;
   }
-  return Math.floor(n);
+
+  var requestedLimit = Number(requestedPosts);
+  if (!Number.isSafeInteger(requestedLimit) || requestedLimit <= 0) {
+    return maximumLimit;
+  }
+
+  return Math.min(requestedLimit, maximumLimit);
 };
 
 const render = (feedEl, data, limit) => {
@@ -176,14 +183,15 @@ const boot = () => {
     return;
   }
 
-  var defaultLimit = Number(feedEl.getAttribute("data-default-limit")) || 5;
-  var limit = getLimit(defaultLimit);
   var data = POSTS;
+  var maximumLimit = Number(feedEl.getAttribute("data-default-limit")) || 5;
 
   if (data && typeof data.defaultLimit === "number" && !Number.isNaN(data.defaultLimit)) {
-    feedEl.setAttribute("data-default-limit", String(data.defaultLimit));
+    maximumLimit = Math.max(1, Math.floor(data.defaultLimit));
+    feedEl.setAttribute("data-default-limit", String(maximumLimit));
   }
 
+  var limit = getLimit(maximumLimit);
   render(feedEl, data || { items: [] }, limit);
   notifyParentHeight();
 };
